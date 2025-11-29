@@ -7,7 +7,7 @@ from typing import Any
 import time
 
 arduino_cloud = ArduinoCloud()
-cl = ColoredLight("clight", swi=True)
+cl = ColoredLight("CClight", swi=True)
 
 def light_callback(client: object, value: Any):
     print(f"Cloud updated: {value}")
