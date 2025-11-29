@@ -3,22 +3,28 @@
 
 #include <Arduino_RouterBridge.h>
 
-void set_hue(int h) {
-    // Just acknowledge - do nothing
-}
+// RGB LED 3 (PH10-12)
+#define LED3_R PH_10
+#define LED3_G PH_11
+#define LED3_B PH_12
 
-void set_sat(int s) {
-    // Just acknowledge - do nothing
-}
+// RGB LED 4 (PH13-15)
+#define LED4_R PH_13
+#define LED4_G PH_14
+#define LED4_B PH_15
 
-void set_bri(int b) {
-    // Just acknowledge - do nothing
-}
+void set_hue(int h) {}
+void set_sat(int s) {}
+void set_bri(int b) {}
 
 void setup() {
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(LED_BUILTIN + 1, OUTPUT);
-    pinMode(LED_BUILTIN + 2, OUTPUT);
+    // Initialize both RGB LEDs
+    pinMode(LED3_R, OUTPUT);
+    pinMode(LED3_G, OUTPUT);
+    pinMode(LED3_B, OUTPUT);
+    pinMode(LED4_R, OUTPUT);
+    pinMode(LED4_G, OUTPUT);
+    pinMode(LED4_B, OUTPUT);
     
     Bridge.begin();
     Bridge.provide("set_hue", set_hue);
@@ -27,27 +33,51 @@ void setup() {
 }
 
 void loop() {
-    // RED ON (Active LOW: LOW = ON)
-    digitalWrite(LED_BUILTIN, LOW);
-    digitalWrite(LED_BUILTIN + 1, HIGH);
-    digitalWrite(LED_BUILTIN + 2, HIGH);
+    // Test LED3 - RED
+    digitalWrite(LED3_R, LOW);
+    digitalWrite(LED3_G, HIGH);
+    digitalWrite(LED3_B, HIGH);
     delay(1000);
     
-    // GREEN ON
-    digitalWrite(LED_BUILTIN, HIGH);
-    digitalWrite(LED_BUILTIN + 1, LOW);
-    digitalWrite(LED_BUILTIN + 2, HIGH);
+    // Test LED3 - GREEN
+    digitalWrite(LED3_R, HIGH);
+    digitalWrite(LED3_G, LOW);
+    digitalWrite(LED3_B, HIGH);
     delay(1000);
     
-    // BLUE ON
-    digitalWrite(LED_BUILTIN, HIGH);
-    digitalWrite(LED_BUILTIN + 1, HIGH);
-    digitalWrite(LED_BUILTIN + 2, LOW);
+    // Test LED3 - BLUE
+    digitalWrite(LED3_R, HIGH);
+    digitalWrite(LED3_G, HIGH);
+    digitalWrite(LED3_B, LOW);
     delay(1000);
     
-    // ALL OFF
-    digitalWrite(LED_BUILTIN, HIGH);
-    digitalWrite(LED_BUILTIN + 1, HIGH);
-    digitalWrite(LED_BUILTIN + 2, HIGH);
+    // Test LED3 - OFF
+    digitalWrite(LED3_R, HIGH);
+    digitalWrite(LED3_G, HIGH);
+    digitalWrite(LED3_B, HIGH);
+    delay(500);
+    
+    // Test LED4 - RED
+    digitalWrite(LED4_R, LOW);
+    digitalWrite(LED4_G, HIGH);
+    digitalWrite(LED4_B, HIGH);
     delay(1000);
+    
+    // Test LED4 - GREEN
+    digitalWrite(LED4_R, HIGH);
+    digitalWrite(LED4_G, LOW);
+    digitalWrite(LED4_B, HIGH);
+    delay(1000);
+    
+    // Test LED4 - BLUE
+    digitalWrite(LED4_R, HIGH);
+    digitalWrite(LED4_G, HIGH);
+    digitalWrite(LED4_B, LOW);
+    delay(1000);
+    
+    // Test LED4 - OFF
+    digitalWrite(LED4_R, HIGH);
+    digitalWrite(LED4_G, HIGH);
+    digitalWrite(LED4_B, HIGH);
+    delay(500);
 }
