@@ -17,7 +17,7 @@ def light_callback(client: object, value: Any):
     Bridge.call("set_sat", int(cl.sat))
     Bridge.call("set_bri", int(cl.bri))
 
-cl = ColoredLight("CClight", swi=True, on_write=light_callback)
+cl = ColoredLight("Clight", swi=True, on_write=light_callback)
 arduino_cloud.register(cl)
 
 App.start_brick(arduino_cloud)
