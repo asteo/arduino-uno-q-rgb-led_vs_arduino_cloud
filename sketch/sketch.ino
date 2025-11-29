@@ -11,7 +11,7 @@ void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
     float S = s / 100.0;
     float V = v / 100.0;
     float C = V * S;
-    float X = C * (1 - abs((h / 60) % 2 - 1));
+    float X = C * (1 - abs(((h / 60) % 2) - 1));
     float m = V - C;
 
     float R, G, B;
@@ -23,68 +23,44 @@ void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
     else if (h < 300) { R = X; G = 0; B = C; }
     else              { R = C; G = 0; B = X; }
 
-    r = (R + m) * 255;
-    g = (G + m) * 255;
-    b = (B + m) * 255;
+    r = (int)((R + m) * 255);
+    g = (int)((G + m) * 255);
+    b = (int)((B + m) * 255);
 }
 
 void updateLed() {
     int r, g, b;
     hsvToRgb(currentHue, currentSat, currentBri, r, g, b);
-    
-    Serial.print("LED: H=");
-    Serial.print(currentHue);
-    Serial.print(" S=");
-    Serial.print(currentSat);
-    Serial.print(" B=");
-    Serial.print(currentBri);
-    Serial.print(" RGB=");
-    Serial.print(r);
-    Serial.print(",");
-    Serial.print(g);
-    Serial.print(",");
-    Serial.println(b);
 
     analogWrite(LED_BUILTIN, r);
-    analogWrite((LED_BUILTIN+1), g);
-    analogWrite((LED_BUILTIN+2), b);
+    analogWrite(LED_BUILTIN + 1, g);
+    analogWrite(LED_BUILTIN + 2, b);
 }
 
 void set_hue(int h) {
-    Serial.print("set_hue: ");
-    Serial.println(h);
     currentHue = h;
     updateLed();
 }
 
 void set_sat(int s) {
-    Serial.print("set_sat: ");
-    Serial.println(s);
     currentSat = s;
     updateLed();
 }
 
 void set_bri(int b) {
-    Serial.print("set_bri: ");
-    Serial.println(b);
     currentBri = b;
     updateLed();
 }
 
 void setup() {
-    Serial.begin(115200);
-    Serial.println("STM32U5 RGB Control Ready");
-    
     pinMode(LED_BUILTIN, OUTPUT);
-    pinMode((LED_BUILTIN+1), OUTPUT);
-    pinMode((LED_BUILTIN+2), OUTPUT);
+    pinMode(LED_BUILTIN + 1, OUTPUT);
+    pinMode(LED_BUILTIN + 2, OUTPUT);
 
     Bridge.begin();
     Bridge.provide("set_hue", set_hue);
     Bridge.provide("set_sat", set_sat);
     Bridge.provide("set_bri", set_bri);
-    
-    Serial.println("Bridge ready");
 }
 
 void loop() {}
