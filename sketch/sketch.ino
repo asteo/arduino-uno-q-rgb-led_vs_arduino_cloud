@@ -3,10 +3,16 @@
 
 #include <Arduino_RouterBridge.h>
 
+// Try multiple pin definitions
+#ifndef LED3_R
+  #define LED3_R  PH_10
+  #define LED3_G  PH_11
+  #define LED3_B  PH_12
+#endif
+
 int currentHue = 0;
 int currentSat = 0;
 int currentBri = 0;
-bool testComplete = false;
 
 void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
     float S = s / 100.0;
@@ -30,9 +36,11 @@ void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
 }
 
 void setLED(int r, int g, int b) {
-    analogWrite(LED_BUILTIN, r);
-    analogWrite(LED_BUILTIN + 1, g);
-    analogWrite(LED_BUILTIN + 2, b);
+    // Active LOW: 0 = ON, 255 = OFF
+    // Invert the values
+    analogWrite(LED3_R, 255 - r);
+    analogWrite(LED3_G, 255 - g);
+    analogWrite(LED3_B, 255 - b);
 }
 
 void updateLed() {
@@ -57,7 +65,7 @@ void set_bri(int b) {
 }
 
 void runTests() {
-    // Test 1: R, G, B with 1 second delay
+    // Test: R, G, B with 1 second delay
     setLED(255, 0, 0);  // RED
     delay(1000);
     
@@ -67,30 +75,32 @@ void runTests() {
     setLED(0, 0, 255);  // BLUE
     delay(1000);
     
-    // Test 2: Hue sweep from red to blue (0 to 240 degrees)
-    // 0.5 second per hue change, smooth transition
+    // Hue sweep
     for (int hue = 0; hue <= 240; hue += 10) {
         int r, g, b;
         hsvToRgb(hue, 100, 100, r, g, b);
         setLED(r, g, b);
-        delay(50);  // 50ms * 24 steps = 1.2 seconds total
+        delay(50);
     }
     
-    delay(500);
-    
-    // Turn off all LEDs
+    // Turn off
     setLED(0, 0, 0);
     delay(500);
-    
-    testComplete = true;
 }
 
 void setup() {
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(LED_BUILTIN + 1, OUTPUT);
-    pinMode(LED_BUILTIN + 2, OUTPUT);
+    pinMode(LED3_R, OUTPUT);
+    pinMode(LED3_G, OUTPUT);
+    pinMode(LED3_B, OUTPUT);
     
-    // Run startup tests
+    // Turn off initially (Active LOW)
+    digitalWrite(LED3_R, HIGH);
+    digitalWrite(LED3_G, HIGH);
+    digitalWrite(LED3_B, HIGH);
+    
+    delay(500);
+    
+    // Run tests
     runTests();
 
     Bridge.begin();
