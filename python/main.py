@@ -13,9 +13,13 @@ def light_callback(client: object, value: Any):
     print(f"H:{cl.hue} S:{cl.sat} B:{cl.bri}")
     
     # Send HSV values to MCU via RPC
+    print(f"Calling Bridge.set_hue({int(cl.hue)})")
     Bridge.call("set_hue", int(cl.hue))
+    print(f"Calling Bridge.set_sat({int(cl.sat)})")
     Bridge.call("set_sat", int(cl.sat))
+    print(f"Calling Bridge.set_bri({int(cl.bri)})")
     Bridge.call("set_bri", int(cl.bri))
+    print("Bridge calls completed")
 
 cl = ColoredLight("clight", swi=True, on_write=light_callback)
 arduino_cloud.register(cl)
