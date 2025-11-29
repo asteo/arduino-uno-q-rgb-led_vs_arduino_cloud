@@ -7,7 +7,6 @@ int currentHue = 0;
 int currentSat = 0;
 int currentBri = 0;
 
-// Converts HSV → RGB (simple integer version)
 void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
     float S = s / 100.0;
     float V = v / 100.0;
@@ -32,6 +31,19 @@ void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
 void updateLed() {
     int r, g, b;
     hsvToRgb(currentHue, currentSat, currentBri, r, g, b);
+    
+    Serial.print("LED: H=");
+    Serial.print(currentHue);
+    Serial.print(" S=");
+    Serial.print(currentSat);
+    Serial.print(" B=");
+    Serial.print(currentBri);
+    Serial.print(" RGB=");
+    Serial.print(r);
+    Serial.print(",");
+    Serial.print(g);
+    Serial.print(",");
+    Serial.println(b);
 
     analogWrite(LED3_R, r);
     analogWrite(LED3_G, g);
@@ -39,21 +51,30 @@ void updateLed() {
 }
 
 void set_hue(int h) {
+    Serial.print("set_hue: ");
+    Serial.println(h);
     currentHue = h;
     updateLed();
 }
 
 void set_sat(int s) {
+    Serial.print("set_sat: ");
+    Serial.println(s);
     currentSat = s;
     updateLed();
 }
 
 void set_bri(int b) {
+    Serial.print("set_bri: ");
+    Serial.println(b);
     currentBri = b;
     updateLed();
 }
 
 void setup() {
+    Serial.begin(115200);
+    Serial.println("STM32U5 RGB Control Ready");
+    
     pinMode(LED3_R, OUTPUT);
     pinMode(LED3_G, OUTPUT);
     pinMode(LED3_B, OUTPUT);
@@ -62,6 +83,8 @@ void setup() {
     Bridge.provide("set_hue", set_hue);
     Bridge.provide("set_sat", set_sat);
     Bridge.provide("set_bri", set_bri);
+    
+    Serial.println("Bridge ready");
 }
 
 void loop() {}
