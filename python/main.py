@@ -9,7 +9,7 @@ import time
 arduino_cloud = ArduinoCloud()
 
 def light_callback(client: object, value: Any):
-    print(f"Cloud updated: {value}")
+    print(f"Cloud was updated: {value}")
     print(f"H:{cl.hue} S:{cl.sat} B:{cl.bri}")
     
     # Send HSV values to MCU via RPC
@@ -17,11 +17,11 @@ def light_callback(client: object, value: Any):
     Bridge.call("set_sat", int(cl.sat))
     Bridge.call("set_bri", int(cl.bri))
 
-cl = ColoredLight("Clight", swi=True, on_write=light_callback)
+cl = ColoredLight("clight", swi=True, on_write=light_callback)
 arduino_cloud.register(cl)
 
 App.start_brick(arduino_cloud)
 
 while True:
-    print(f"Loop: H:{cl.hue} S:{cl.sat} B:{cl.bri}")
+    print(f"Python Loop: H:{cl.hue} S:{cl.sat} B:{cl.bri}")
     time.sleep(2)
