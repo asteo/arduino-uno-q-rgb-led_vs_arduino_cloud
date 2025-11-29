@@ -1,0 +1,9 @@
+name: Arduino Cloud
+description: ""
+ports: []
+bricks:
+- arduino:arduino_cloud:
+    variables:
+      ARDUINO_DEVICE_ID: fac61d4b-544b-407b-a0af-54f02d0089c7
+      ARDUINO_SECRET: uvMMj?L6JCUDt6JWnrPOqXfcY
+icon: 😀
