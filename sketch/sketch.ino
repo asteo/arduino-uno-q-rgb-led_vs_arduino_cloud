@@ -45,9 +45,9 @@ void updateLed() {
     Serial.print(",");
     Serial.println(b);
 
-    analogWrite(LED3_R, r);
-    analogWrite(LED3_G, g);
-    analogWrite(LED3_B, b);
+    analogWrite(LED_BUILTIN, r);
+    analogWrite((LED_BUILTIN+1), g);
+    analogWrite((LED_BUILTIN+2), b);
 }
 
 void set_hue(int h) {
@@ -75,9 +75,9 @@ void setup() {
     Serial.begin(115200);
     Serial.println("STM32U5 RGB Control Ready");
     
-    pinMode(LED3_R, OUTPUT);
-    pinMode(LED3_G, OUTPUT);
-    pinMode(LED3_B, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode((LED_BUILTIN+1), OUTPUT);
+    pinMode((LED_BUILTIN+2), OUTPUT);
 
     Bridge.begin();
     Bridge.provide("set_hue", set_hue);
