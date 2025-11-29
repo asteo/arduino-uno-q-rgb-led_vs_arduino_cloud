@@ -3,59 +3,36 @@
 
 #include <Arduino_RouterBridge.h>
 
-int currentHue = 0;
-int currentSat = 0;
-int currentBri = 0;
-
-void hsvToRgb(int h, int s, int v, int& r, int& g, int& b) {
-    float S = s / 100.0;
-    float V = v / 100.0;
-    float C = V * S;
-    float X = C * (1 - abs(((h / 60) % 2) - 1));
-    float m = V - C;
-
-    float R, G, B;
-
-    if      (h < 60)  { R = C; G = X; B = 0; }
-    else if (h < 120) { R = X; G = C; B = 0; }
-    else if (h < 180) { R = 0; G = C; B = X; }
-    else if (h < 240) { R = 0; G = X; B = C; }
-    else if (h < 300) { R = X; G = 0; B = C; }
-    else              { R = C; G = 0; B = X; }
-
-    r = (int)((R + m) * 255);
-    g = (int)((G + m) * 255);
-    b = (int)((B + m) * 255);
-}
-
-void updateLed() {
-    int r, g, b;
-    hsvToRgb(currentHue, currentSat, currentBri, r, g, b);
-
-    analogWrite(LED_BUILTIN, r);
-    analogWrite(LED_BUILTIN + 1, g);
-    analogWrite(LED_BUILTIN + 2, b);
-}
-
 void set_hue(int h) {
-    currentHue = h;
-    updateLed();
+    // Test: Just turn RED LED on
+    analogWrite(LED_BUILTIN, 255);
+    analogWrite(LED_BUILTIN + 1, 0);
+    analogWrite(LED_BUILTIN + 2, 0);
 }
 
 void set_sat(int s) {
-    currentSat = s;
-    updateLed();
+    // Test: Just turn GREEN LED on
+    analogWrite(LED_BUILTIN, 0);
+    analogWrite(LED_BUILTIN + 1, 255);
+    analogWrite(LED_BUILTIN + 2, 0);
 }
 
 void set_bri(int b) {
-    currentBri = b;
-    updateLed();
+    // Test: Just turn BLUE LED on
+    analogWrite(LED_BUILTIN, 0);
+    analogWrite(LED_BUILTIN + 1, 0);
+    analogWrite(LED_BUILTIN + 2, 255);
 }
 
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     pinMode(LED_BUILTIN + 1, OUTPUT);
     pinMode(LED_BUILTIN + 2, OUTPUT);
+    
+    // Test at startup: Turn LED WHITE
+    analogWrite(LED_BUILTIN, 255);
+    analogWrite(LED_BUILTIN + 1, 255);
+    analogWrite(LED_BUILTIN + 2, 255);
 
     Bridge.begin();
     Bridge.provide("set_hue", set_hue);
