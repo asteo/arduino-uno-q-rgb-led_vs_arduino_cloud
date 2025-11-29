@@ -1,73 +1,39 @@
 // SPDX-FileCopyrightText: Copyright (C) 2025 ARDUINO SA
 // SPDX-License-Identifier: MPL-2.0
 
+// Learning Example: Step 1 - Simple HW PWM Fade on LED3_R
+
 #include <Arduino_RouterBridge.h>
 
-void set_hue(int h) {}
-void set_sat(int s) {}
-void set_bri(int b) {}
-
 void setup() {
-    // Use predefined LED3_R, LED3_G, LED3_B constants
+    // LED3 has hardware PWM support
     pinMode(LED3_R, OUTPUT);
     pinMode(LED3_G, OUTPUT);
     pinMode(LED3_B, OUTPUT);
+    
+    // LED4 is digital only
     pinMode(LED4_R, OUTPUT);
     pinMode(LED4_G, OUTPUT);
     pinMode(LED4_B, OUTPUT);
     
     Bridge.begin();
-    Bridge.provide("set_hue", set_hue);
-    Bridge.provide("set_sat", set_sat);
-    Bridge.provide("set_bri", set_bri);
 }
 
 void loop() {
-    // Test LED3 - RED
-    digitalWrite(LED3_R, LOW);
-    digitalWrite(LED3_G, HIGH);
-    digitalWrite(LED3_B, HIGH);
-    delay(1000);
+    // Simple fade effect on LED3_R using hardware PWM
     
-    // Test LED3 - GREEN
-    digitalWrite(LED3_R, HIGH);
-    digitalWrite(LED3_G, LOW);
-    digitalWrite(LED3_B, HIGH);
-    delay(1000);
+    // Fade in (0 -> 255)
+    for (int brightness = 0; brightness <= 255; brightness++) {
+        analogWrite(LED3_R, brightness);
+        delay(5);  // 5ms per step = 1.28 seconds total
+    }
     
-    // Test LED3 - BLUE
-    digitalWrite(LED3_R, HIGH);
-    digitalWrite(LED3_G, HIGH);
-    digitalWrite(LED3_B, LOW);
-    delay(1000);
+    // Fade out (255 -> 0)
+    for (int brightness = 255; brightness >= 0; brightness--) {
+        analogWrite(LED3_R, brightness);
+        delay(5);
+    }
     
-    // Test LED3 - OFF
-    digitalWrite(LED3_R, HIGH);
-    digitalWrite(LED3_G, HIGH);
-    digitalWrite(LED3_B, HIGH);
-    delay(500);
-    
-    // Test LED4 - RED
-    digitalWrite(LED4_R, LOW);
-    digitalWrite(LED4_G, HIGH);
-    digitalWrite(LED4_B, HIGH);
-    delay(1000);
-    
-    // Test LED4 - GREEN
-    digitalWrite(LED4_R, HIGH);
-    digitalWrite(LED4_G, LOW);
-    digitalWrite(LED4_B, HIGH);
-    delay(1000);
-    
-    // Test LED4 - BLUE
-    digitalWrite(LED4_R, HIGH);
-    digitalWrite(LED4_G, HIGH);
-    digitalWrite(LED4_B, LOW);
-    delay(1000);
-    
-    // Test LED4 - OFF
-    digitalWrite(LED4_R, HIGH);
-    digitalWrite(LED4_G, HIGH);
-    digitalWrite(LED4_B, HIGH);
+    // Pause
     delay(500);
 }
