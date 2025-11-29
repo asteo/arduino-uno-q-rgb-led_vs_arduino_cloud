@@ -3,22 +3,12 @@
 
 #include <Arduino_RouterBridge.h>
 
-// RGB LED 3 (PH10-12)
-#define LED3_R PH_10
-#define LED3_G PH_11
-#define LED3_B PH_12
-
-// RGB LED 4 (PH13-15)
-#define LED4_R PH_13
-#define LED4_G PH_14
-#define LED4_B PH_15
-
 void set_hue(int h) {}
 void set_sat(int s) {}
 void set_bri(int b) {}
 
 void setup() {
-    // Initialize both RGB LEDs
+    // Use predefined LED3_R, LED3_G, LED3_B constants
     pinMode(LED3_R, OUTPUT);
     pinMode(LED3_G, OUTPUT);
     pinMode(LED3_B, OUTPUT);
