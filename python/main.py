@@ -9,36 +9,21 @@ import time
 arduino_cloud = ArduinoCloud()
 
 def light_callback(client: object, value: Any):
-    print(f"Cloud was updated: {value}")
-    print(f"H:{cl.hue} S:{cl.sat} B:{cl.bri}")
+    print(f"Cloud updated: H:{cl.hue} S:{cl.sat} B:{cl.bri} SW:{cl.swi}")
+    Bridge.call("set_hue", int(cl.hue))
+    Bridge.call("set_brightness", int(cl.bri))
+    Bridge.call("set_switch", cl.swi)
 
 cl = ColoredLight("clight", swi=True, on_write=light_callback)
 arduino_cloud.register(cl)
 
 App.start_brick(arduino_cloud)
 
-# Bridge Protocol Test: int (0=OFF, 1=R, 2=G, 3=B)
 print("\n" + "="*50)
-print("BRIDGE TEST: set_color_int (int)")
-print("="*50)
-
-colors = [
-    (1, "RED"),
-    (2, "GREEN"),
-    (3, "BLUE"),
-    (0, "OFF")
-]
-
-for val, name in colors:
-    print(f"\n[Test] Sending {name} ({val})")
-    Bridge.call("set_color_int", val)
-    print(f"  Expected: LED3 fade {name}, LED4 blink {name}")
-    time.sleep(5)
-
-print("\n" + "="*50)
-print("Test complete. Entering normal loop...")
+print("Arduino Cloud RGB LED Control")
+print("LED3: Cloud-controlled (HUE/BRI/SWITCH)")
+print("LED4: Heartbeat (R->G->B->OFF)")
 print("="*50 + "\n")
 
 while True:
-    print(f"Python Loop: H:{cl.hue} S:{cl.sat} B:{cl.bri}")
     time.sleep(10)

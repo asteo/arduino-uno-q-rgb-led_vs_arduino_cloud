@@ -4,33 +4,63 @@
 #include <Arduino_RouterBridge.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(rgb_led, LOG_LEVEL_DBG);
 
 // LED3 PWM specs
 static const struct pwm_dt_spec pwm_led3_r = PWM_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 5);
 static const struct pwm_dt_spec pwm_led3_g = PWM_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 6);
 static const struct pwm_dt_spec pwm_led3_b = PWM_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 7);
 
-// Global state: 0=OFF, 1=R, 2=G, 3=B
-volatile int led3_color = 1;
-volatile int led4_color = 1;
+// Global state
+volatile int led3_hue = 0;
+volatile int led3_brightness = 100;
+volatile bool led3_switch = true;
+volatile int led4_state = 0;
 
-// Fade helper
-void fade(const struct pwm_dt_spec *pwm) {
-    uint32_t period = pwm->period;
-    for (int i = 0; i <= 255; i++) {
-        pwm_set_dt(pwm, period, (period * i) / 255);
-        k_sleep(K_MSEC(5));
+// HSV to RGB
+void hsv_to_rgb(int h, int s, int v, uint8_t *r, uint8_t *g, uint8_t *b) {
+    if (s == 0) {
+        *r = *g = *b = (v * 255) / 100;
+        return;
     }
-    for (int i = 255; i >= 0; i--) {
-        pwm_set_dt(pwm, period, (period * i) / 255);
-        k_sleep(K_MSEC(5));
+    
+    int region = h / 60;
+    int remainder = (h % 60) * 6;
+    
+    int p = (v * (100 - s)) / 100;
+    int q = (v * (100 - (s * remainder) / 360)) / 100;
+    int t = (v * (100 - (s * (360 - remainder)) / 360)) / 100;
+    
+    switch (region) {
+        case 0: *r = v; *g = t; *b = p; break;
+        case 1: *r = q; *g = v; *b = p; break;
+        case 2: *r = p; *g = v; *b = t; break;
+        case 3: *r = p; *g = q; *b = v; break;
+        case 4: *r = t; *g = p; *b = v; break;
+        default: *r = v; *g = p; *b = q; break;
     }
+    
+    *r = (*r * 255) / 100;
+    *g = (*g * 255) / 100;
+    *b = (*b * 255) / 100;
 }
 
-// Bridge handler
-void set_color_int(int color) {
-    led3_color = color;
-    led4_color = color;
+// Bridge handlers
+void set_hue(int hue) {
+    led3_hue = hue % 360;
+    LOG_INF("HUE: %d", led3_hue);
+}
+
+void set_brightness(int bri) {
+    led3_brightness = bri > 100 ? 100 : (bri < 0 ? 0 : bri);
+    LOG_INF("BRI: %d", led3_brightness);
+}
+
+void set_switch(bool swi) {
+    led3_switch = swi;
+    LOG_INF("SWI: %d", swi);
 }
 
 // LED3 thread
@@ -39,43 +69,42 @@ struct k_thread led3_thread;
 
 void led3_thread_fn(void *, void *, void *) {
     while (1) {
-        const struct pwm_dt_spec *pwm = NULL;
-        
-        switch (led3_color) {
-            case 1: pwm = &pwm_led3_r; break;
-            case 2: pwm = &pwm_led3_g; break;
-            case 3: pwm = &pwm_led3_b; break;
-            default:
-                pwm_set_dt(&pwm_led3_r, pwm_led3_r.period, 0);
-                pwm_set_dt(&pwm_led3_g, pwm_led3_g.period, 0);
-                pwm_set_dt(&pwm_led3_b, pwm_led3_b.period, 0);
-                k_sleep(K_MSEC(100));
-                continue;
+        if (!led3_switch) {
+            pwm_set_dt(&pwm_led3_r, pwm_led3_r.period, 0);
+            pwm_set_dt(&pwm_led3_g, pwm_led3_g.period, 0);
+            pwm_set_dt(&pwm_led3_b, pwm_led3_b.period, 0);
+            k_sleep(K_MSEC(100));
+            continue;
         }
         
-        fade(pwm);
-        k_sleep(K_MSEC(300));
+        uint8_t r, g, b;
+        hsv_to_rgb(led3_hue, 100, led3_brightness, &r, &g, &b);
+        
+        uint32_t period = pwm_led3_r.period;
+        pwm_set_dt(&pwm_led3_r, period, (period * r) / 255);
+        pwm_set_dt(&pwm_led3_g, period, (period * g) / 255);
+        pwm_set_dt(&pwm_led3_b, period, (period * b) / 255);
+        
+        k_sleep(K_MSEC(50));
     }
 }
 
-// LED4 thread
-K_THREAD_STACK_DEFINE(led4_stack, 512);
-struct k_thread led4_thread;
+// LED4 heartbeat
+struct k_timer led4_timer;
 
-void led4_thread_fn(void *, void *, void *) {
-    while (1) {
-        digitalWrite(LED4_R, HIGH);
-        digitalWrite(LED4_G, HIGH);
-        digitalWrite(LED4_B, HIGH);
-        
-        switch (led4_color) {
-            case 1: digitalWrite(LED4_R, LOW); break;
-            case 2: digitalWrite(LED4_G, LOW); break;
-            case 3: digitalWrite(LED4_B, LOW); break;
-        }
-        
-        k_sleep(K_MSEC(1000));
+void led4_timer_handler(struct k_timer *timer) {
+    digitalWrite(LED4_R, HIGH);
+    digitalWrite(LED4_G, HIGH);
+    digitalWrite(LED4_B, HIGH);
+    
+    switch (led4_state) {
+        case 0: digitalWrite(LED4_R, LOW); break;
+        case 1: digitalWrite(LED4_G, LOW); break;
+        case 2: digitalWrite(LED4_B, LOW); break;
+        case 3: break;
     }
+    
+    led4_state = (led4_state + 1) % 4;
 }
 
 void setup() {
@@ -84,13 +113,19 @@ void setup() {
     pinMode(LED4_B, OUTPUT);
     
     Bridge.begin();
-    Bridge.provide("set_color_int", set_color_int);
+    Bridge.provide("set_hue", set_hue);
+    Bridge.provide("set_brightness", set_brightness);
+    Bridge.provide("set_switch", set_switch);
     
-    // Create threads AFTER Bridge is ready
+    Monitor.print("Arduino Print: HUE=");
+    Monitor.println(led3_hue);
+    LOG_INF("Zephyr LOG: HUE=%d BRI=%d SWI=%d", led3_hue, led3_brightness, led3_switch);
+    
     k_thread_create(&led3_thread, led3_stack, K_THREAD_STACK_SIZEOF(led3_stack),
                     led3_thread_fn, NULL, NULL, NULL, 7, 0, K_NO_WAIT);
-    k_thread_create(&led4_thread, led4_stack, K_THREAD_STACK_SIZEOF(led4_stack),
-                    led4_thread_fn, NULL, NULL, NULL, 7, 0, K_NO_WAIT);
+    
+    k_timer_init(&led4_timer, led4_timer_handler, NULL);
+    k_timer_start(&led4_timer, K_MSEC(500), K_MSEC(500));
 }
 
 void loop() {}
