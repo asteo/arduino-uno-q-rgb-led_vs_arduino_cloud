@@ -4,9 +4,6 @@
 #include <Arduino_RouterBridge.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/pwm.h>
-#include <zephyr/logging/log.h>
-
-LOG_MODULE_REGISTER(rgb_led, LOG_LEVEL_DBG);
 
 // LED3 PWM specs
 static const struct pwm_dt_spec pwm_led3_r = PWM_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 5);
@@ -50,17 +47,20 @@ void hsv_to_rgb(int h, int s, int v, uint8_t *r, uint8_t *g, uint8_t *b) {
 // Bridge handlers
 void set_hue(int hue) {
     led3_hue = hue % 360;
-    LOG_INF("HUE: %d", led3_hue);
+    Monitor.print("HUE: ");
+    Monitor.println(led3_hue);
 }
 
 void set_brightness(int bri) {
     led3_brightness = bri > 100 ? 100 : (bri < 0 ? 0 : bri);
-    LOG_INF("BRI: %d", led3_brightness);
+    Monitor.print("BRI: ");
+    Monitor.println(led3_brightness);
 }
 
 void set_switch(bool swi) {
     led3_switch = swi;
-    LOG_INF("SWI: %d", swi);
+    Monitor.print("SWI: ");
+    Monitor.println(swi);
 }
 
 // LED3 thread
@@ -117,9 +117,7 @@ void setup() {
     Bridge.provide("set_brightness", set_brightness);
     Bridge.provide("set_switch", set_switch);
     
-    Monitor.print("Arduino Print: HUE=");
-    Monitor.println(led3_hue);
-    LOG_INF("Zephyr LOG: HUE=%d BRI=%d SWI=%d", led3_hue, led3_brightness, led3_switch);
+    Monitor.println("=== RGB LED Ready ===");
     
     k_thread_create(&led3_thread, led3_stack, K_THREAD_STACK_SIZEOF(led3_stack),
                     led3_thread_fn, NULL, NULL, NULL, 7, 0, K_NO_WAIT);
